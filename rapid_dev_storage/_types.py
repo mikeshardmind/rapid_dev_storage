@@ -19,9 +19,14 @@ NoValue = _NoValueType()
 
 
 class StorageBackend(ABC):
+    """
+    Interfaces here are async to allow dropping
+    in other interfaces which would strictly need to be async
+    """
+
     @abstractmethod
     async def write_data(
-        self, value: Union[AnyStorable, _NoValueType], group_name: str, *keys: str
+        self, group_name: str, *keys: str, value: Union[AnyStorable, _NoValueType],
     ):
         ...
 

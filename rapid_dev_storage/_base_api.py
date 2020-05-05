@@ -10,7 +10,7 @@ class StoredValue:
         self._group_name = group_name
 
     def set_value(self, value: AnyStorable) -> Awaitable[None]:
-        return self._backend.write_data(value, self._group_name, *self._keys)
+        return self._backend.write_data(self._group_name, *self._keys, value=value)
 
     def get_value(self) -> Awaitable[Union[AnyStorable, _NoValueType]]:
         return self._backend.get_data(self._group_name, *self._keys)
