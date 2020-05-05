@@ -31,8 +31,8 @@ class StorageBackend(ABC):
     ) -> Union[AnyStorable, _NoValueType]:
         ...
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     async def create_backend_instance(
         cls,
         path: Path,
