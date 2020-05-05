@@ -2,7 +2,7 @@ import functools
 import keyword
 
 from pathlib import Path
-from typing import Union
+from typing import AsyncIterator, Tuple, Union
 
 import apsw
 import msgpack
@@ -16,6 +16,31 @@ class SQLiteBackend(StorageBackend):
         self._table_name = table_name
         self._serializer = serializer
         self._deserializer = deserializer
+
+    async def clear_group(self, group_name: str):
+        cursor = self._connection.cursor()
+
+        cursor.execute(
+            f""" DELETE FROM [ {self._table_name} ] WHERE group_name = ? """,
+            (group_name,),
+        )
+
+    async def clear_by_key_prefix(self, group_name: str, *keys: str):
+        cursor = self._connection.cursor()
+        sqlite_args = (group_name,) + keys
+        key_len = len(keys)
+
+        # This doesn't insert any user provided values into the formatting and is safe
+        # It's a mess, but this is the concession price for what's achieved here.
+
+        match_partial = " AND ".join(f"k{i}=?" for i in range(1, key_len + 1))
+        cursor.execute(
+            f"""
+            DELETE FROM [ {self._table_name} ]
+                WHERE group_name=? AND {match_partial}
+            """,
+            sqlite_args,
+        )
 
     async def clear_by_keys(self, group_name: str, *keys: str):
 
@@ -131,3 +156,49 @@ class SQLiteBackend(StorageBackend):
         )
 
         return cls(con, table_name, serializer, deserializer)
+
+    async def get_all_by_group(  # type: ignore
+        self, group_name: str
+    ) -> AsyncIterator[Tuple[tuple, AnyStorable]]:
+
+        cursor = self._connection.cursor()
+
+        for row in cursor.execute(
+            f"""
+            SELECT data, k1, k2, k3, k4, k5 FROM [ {self._table_name} ]
+            WHERE group_name = ?
+            """,
+            (group_name,),
+        ):
+            raw_data, *raw_keys = row
+
+            keys = tuple(k for k in raw_keys if k is not None)
+            data = self._deserializer(raw_data)
+            yield keys, data  # type: ignore
+
+    async def get_all_by_key_prefix(  # type: ignore
+        self, group_name: str, *keys: str
+    ) -> AsyncIterator[Tuple[tuple, AnyStorable]]:
+
+        cursor = self._connection.cursor()
+        sqlite_args = (group_name,) + keys
+
+        key_len = len(keys)
+
+        # This doesn't insert any user provided values into the formatting and is safe
+        # It's a mess, but this is the concession price for what's achieved here.
+
+        match_partial = " AND ".join(f"k{i}=?" for i in range(1, key_len + 1))
+
+        for row in cursor.execute(
+            f"""
+            SELECT data, k1, k2, k3, k4, k5 FROM [ {self._table_name} ]
+            WHERE group_name = ? AND {match_partial}
+            """,
+            sqlite_args,
+        ):
+            raw_data, *raw_keys = row
+
+            keys = tuple(k for k in raw_keys if k is not None)
+            data = self._deserializer(raw_data)
+            yield keys, data  # type: ignore

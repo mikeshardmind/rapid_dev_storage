@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, AsyncIterator, Dict, List, Tuple, Union
 
 AnyStorable = Union[Dict[str, Any], List[Any], int, float, str, None]
 
@@ -51,4 +51,24 @@ class StorageBackend(ABC):
 
     @abstractmethod
     async def clear_by_keys(self, group_name: str, *keys: str):
+        ...
+
+    @abstractmethod
+    async def clear_group(self, group_name: str):
+        ...
+
+    @abstractmethod
+    async def clear_by_key_prefix(self, group_name: str, *keys: str):
+        ...
+
+    @abstractmethod
+    async def get_all_by_group(
+        self, group_name: str
+    ) -> AsyncIterator[Tuple[tuple, AnyStorable]]:
+        ...
+
+    @abstractmethod
+    async def get_all_by_key_prefix(
+        self, group_name: str, *keys: str
+    ) -> AsyncIterator[Tuple[tuple, AnyStorable]]:
         ...

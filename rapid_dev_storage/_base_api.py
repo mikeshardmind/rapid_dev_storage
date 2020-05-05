@@ -29,8 +29,15 @@ class StorageGroup:
             raise ValueError("Must not provide more than a 5-part key")
         return StoredValue(self._backend, self._group_name, *keys)
 
+    def clear_group(self) -> Awaitable[None]:
+        return self._backend.clear_group(self._group_name)
+
 
 class Storage:
+    """
+    This is the basic storage wrapper class.
+    """
+
     def __init__(self, backend: StorageBackend):
         self._state = None
         self._backend = backend
