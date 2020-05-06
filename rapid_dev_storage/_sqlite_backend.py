@@ -1,30 +1,27 @@
 """
-This holds all the SQLite Logic.
+MIT License
 
-All lookups operate on a composite primary key,
-ensuring that the abstration has minimal runtime performance overhead.
-This does incur a small cost to the DB size, though this is acceptible.
+Copyright (c) 2020 Michael Hall
 
-Interface is async despite the underlying code not being so.
-This is intentional, as if used as-is, without competeting on the same table
-with other applications, it should not block the event loop.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Meanwhile, the interface being async consistently leaves room for drop in replacements
-which may actually utilize the async nature,
-or further features which might have the potential to be blocking
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-There are a handful of computed SQL queries.
-These are limited against user input, and userinput is not allowed to be formatted in,
-with 1 exception of the table name.
-This name is restricted in nature as to be safe,
-and properly bracketed so that it is never seen as an SQL expression
-
-Changes to the computed queries should be done with caution to ensure this remains true.
-For additional peace of mind,
-you can choose to disallow user input from being used as part of the
-table_name at the application layer, which leaves all remaining potential user input
-inserted as parameters.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
+
 import functools
 import keyword
 
@@ -38,6 +35,34 @@ from ._types import AnyStorable, NoValue, StorageBackend, _NoValueType
 
 
 class SQLiteBackend(StorageBackend):
+    """
+    This holds all the SQLite Logic.
+
+    All lookups operate on a composite primary key,
+    ensuring that the abstration has minimal runtime performance overhead.
+    This does incur a small cost to the DB size, though this is acceptible.
+
+    Interface is async despite the underlying code not being so.
+    This is intentional, as if used as-is, without competeting on the same table
+    with other applications, it should not block the event loop.
+
+    Meanwhile, the interface being async consistently leaves room for drop in replacements
+    which may actually utilize the async nature,
+    or further features which might have the potential to be blocking
+
+    There are a handful of computed SQL queries.
+    These are limited against user input, and userinput is not allowed to be formatted in,
+    with 1 exception of the table name.
+    This name is restricted in nature as to be safe,
+    and properly bracketed so that it is never seen as an SQL expression
+
+    Changes to the computed queries should be done with caution to ensure this remains true.
+    For additional peace of mind,
+    you can choose to disallow user input from being used as part of the
+    table_name at the application layer, which leaves all remaining potential user input
+    inserted as parameters.
+    """
+
     def __init__(self, connection, table_name: str, serializer, deserializer):
         self._connection = connection
         self._table_name = table_name
