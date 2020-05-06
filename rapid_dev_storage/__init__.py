@@ -10,7 +10,7 @@ from ._base_api import Storage, StorageGroup, StoredValue
 from ._sqlite_backend import SQLiteBackend
 from ._types import NoValue, StorageBackend
 
-__version__ = "0.0.2a"
+__version__ = "1.0.0"
 __title__ = "rapid_dev_storage"
 __author__ = "Michael Hall"
 __license__ = "MIT"

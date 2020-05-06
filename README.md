@@ -1,9 +1,3 @@
-# Don't use this yet
-
-No seriously, it's not fully documented, and there is still more to do on the design.
-
-I'll do a release and have things documented by the time it is ready for use.
-
 ### Why?
 
 Because there are many situations in which a small app may need to store data and not want to commit to a full DB design from the outset.
@@ -33,7 +27,7 @@ class SpecificStorage(Storage):
 
     @classmethod
     async def new_storage(cls, location):
-        backend = await SQLiteBackend.create_backend_instance(location, "main store", 42)
+        backend = await SQLiteBackend.create_backend_instance(location, "main_store", 42)
         return cls(backend)
     
     def user(self, user: User):
@@ -62,4 +56,5 @@ If you want to mess with this before it is fully documented, the below may be en
 42
 ```
 
-There's more work and documentation to be done here, but if you use it exactly as it's intended currently, it will probably work for you. I still can't recommend using it yet.
+There's more work to be done here, mostly documentation
+but if you use it exactly as it's intended currently, it should work for you. 
