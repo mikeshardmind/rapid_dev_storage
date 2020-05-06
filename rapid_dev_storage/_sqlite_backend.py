@@ -1,8 +1,35 @@
+"""
+This holds all the SQLite Logic.
+
+All lookups operate on a composite primary key,
+ensuring that the abstration has minimal runtime performance overhead.
+This does incur a small cost to the DB size, though this is acceptible.
+
+Interface is async despite the underlying code not being so.
+This is intentional, as if used as-is, without competeting on the same table
+with other applications, it should not block the event loop.
+
+Meanwhile, the interface being async consistently leaves room for drop in replacements
+which may actually utilize the async nature,
+or further features which might have the potential to be blocking
+
+There are a handful of computed SQL queries.
+These are limited against user input, and userinput is not allowed to be formatted in,
+with 1 exception of the table name.
+This name is restricted in nature as to be safe,
+and properly bracketed so that it is never seen as an SQL expression
+
+Changes to the computed queries should be done with caution to ensure this remains true.
+For additional peace of mind,
+you can choose to disallow user input from being used as part of the
+table_name at the application layer, which leaves all remaining potential user input
+inserted as parameters.
+"""
 import functools
 import keyword
 
 from pathlib import Path
-from typing import AsyncIterator, Tuple, Union
+from typing import Literal, Union
 
 import apsw
 import msgpack
@@ -113,7 +140,7 @@ class SQLiteBackend(StorageBackend):
     @classmethod
     async def create_backend_instance(
         cls,
-        path: Path,
+        path: Union[Path, Literal[":memory:"]],
         name: str,
         unique_identifier: int,
         *,
@@ -157,9 +184,7 @@ class SQLiteBackend(StorageBackend):
 
         return cls(con, table_name, serializer, deserializer)
 
-    async def get_all_by_group(  # type: ignore
-        self, group_name: str
-    ) -> AsyncIterator[Tuple[tuple, AnyStorable]]:
+    async def get_all_by_group(self, group_name: str):
 
         cursor = self._connection.cursor()
 
@@ -174,11 +199,9 @@ class SQLiteBackend(StorageBackend):
 
             keys = tuple(k for k in raw_keys if k is not None)
             data = self._deserializer(raw_data)
-            yield keys, data  # type: ignore
+            yield keys, data
 
-    async def get_all_by_key_prefix(  # type: ignore
-        self, group_name: str, *keys: str
-    ) -> AsyncIterator[Tuple[tuple, AnyStorable]]:
+    async def get_all_by_key_prefix(self, group_name: str, *keys: str):
 
         cursor = self._connection.cursor()
         sqlite_args = (group_name,) + keys
@@ -201,4 +224,4 @@ class SQLiteBackend(StorageBackend):
 
             keys = tuple(k for k in raw_keys if k is not None)
             data = self._deserializer(raw_data)
-            yield keys, data  # type: ignore
+            yield keys, data

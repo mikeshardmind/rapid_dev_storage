@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Union
 
 AnyStorable = Union[Dict[str, Any], List[Any], int, float, str, None]
 
@@ -25,9 +25,7 @@ class StorageBackend(ABC):
     """
 
     @abstractmethod
-    async def write_data(
-        self, group_name: str, *keys: str, value: Union[AnyStorable, _NoValueType],
-    ):
+    async def write_data(self, group_name: str, *keys: str, value: AnyStorable):
         ...
 
     @abstractmethod
@@ -62,13 +60,11 @@ class StorageBackend(ABC):
         ...
 
     @abstractmethod
-    async def get_all_by_group(
-        self, group_name: str
-    ) -> AsyncIterator[Tuple[tuple, AnyStorable]]:
+    async def get_all_by_group(self, group_name: str):
+        """ Concrete implmentations must yield a 2-tuple of (key tuple, value) """
         ...
 
     @abstractmethod
-    async def get_all_by_key_prefix(
-        self, group_name: str, *keys: str
-    ) -> AsyncIterator[Tuple[tuple, AnyStorable]]:
+    async def get_all_by_key_prefix(self, group_name: str, *keys: str):
+        """ Concrete implementations must yield a 2-tuple of (key tuple, value) """
         ...

@@ -1,6 +1,6 @@
 # Don't use this yet
 
-No seriously, it's not documented, and it shouldnt be used without more consideration.
+No seriously, it's not fully documented, and there is still more to do on the design.
 
 I'll do a release and have things documented by the time it is ready for use.
 
@@ -21,14 +21,35 @@ An abstraction around storing "some number of identifiers" mapping to "some easi
 
 This is great for not thinking about certain things specific to DBs, but it makes a few concessions and is less performant than using the right tool for the job. This is a tool for rapid development scaffolding.
 
-### Quickstart
+### Examples
 
-(TODO)
+```py
+# Getting started with customizing use
+from rapid_dev_storage import SQLiteBackend, Storage, StorageGroup, StorageValue
+
+
+class SpecificStorage:
+    """ This shows how a project can use the simple base design to advantage """
+
+    @classmethod
+    async def new_storage(cls, location):
+        backend = await SQLiteBackend.create_backend_instance(location, "main store", 42)
+        return cls(backend)
+    
+    def user(self, user: User):
+        """ Returns a specific StorageValue corresponding to a user object """
+        return self.get_group("USER")[user.uuid]
+
+    async def all_users(self):
+        """ Yields user uuids and corresponding user data """
+        async for user_uuid, user_data in self._backend.get_all_by_group("USER"):
+            yield user_uuid, user_data
+```
 
 
 ### I want to use it now!!
 
-If you want to mess with this before it is ready for use...
+If you want to mess with this before it is fully documented, the below may be enough to get you started.
 
 
 ```py
