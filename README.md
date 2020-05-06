@@ -28,7 +28,7 @@ This is great for not thinking about certain things specific to DBs, but it make
 from rapid_dev_storage import SQLiteBackend, Storage, StorageGroup, StorageValue
 
 
-class SpecificStorage:
+class SpecificStorage(Storage):
     """ This shows how a project can use the simple base design to advantage """
 
     @classmethod
