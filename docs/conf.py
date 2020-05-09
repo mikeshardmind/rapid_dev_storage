@@ -64,9 +64,6 @@ html_sidebars = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-# Autodoc options
-autodoc_default_options = {"show-inheritance": True}
-
 # RTD
 html_theme = "sphinx_rtd_theme"
 html4_writer = True

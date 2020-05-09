@@ -35,8 +35,11 @@ class SpecificStorage(Storage):
         return self.get_group("USER")[user.uuid]
 
     async def all_users(self):
-        """ Yields user uuids and corresponding user data """
-        async for user_uuid, user_data in self._backend.get_all_by_group("USER"):
+        """
+        Yields user uuids and corresponding user data,
+        under the assumption they were set using the above value access
+        """
+        async for (user_uuid,) user_data in self._backend.get_all_by_group("USER"):
             yield user_uuid, user_data
 ```
 
