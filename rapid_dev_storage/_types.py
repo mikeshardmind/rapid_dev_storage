@@ -24,7 +24,7 @@ SOFTWARE.
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, AsyncIterator, Dict, List, Tuple, Union
 
 AnyStorable = Union[Dict[str, Any], List[Any], int, float, str, None]
 
@@ -44,6 +44,9 @@ NoValue = _NoValueType()
 
 class StorageBackend(ABC):
     """
+    This abstract base class shows the interfaces
+    required to use a class as a replacement backend for the included ones
+
     Interfaces here are async to allow dropping
     in other interfaces which would strictly need to be async
     """
@@ -84,11 +87,15 @@ class StorageBackend(ABC):
         ...
 
     @abstractmethod
-    async def get_all_by_group(self, group_name: str):
-        """ Concrete implmentations must yield a 2-tuple of (key tuple, value) """
+    def get_all_by_group(
+        self, group_name: str
+    ) -> AsyncIterator[Tuple[Tuple[str, ...], AnyStorable]]:
+        """ Concrete implmentations must asynchronously yield a 2-tuple of (key tuple, value) """
         ...
 
     @abstractmethod
-    async def get_all_by_key_prefix(self, group_name: str, *keys: str):
-        """ Concrete implementations must yield a 2-tuple of (key tuple, value) """
+    def get_all_by_key_prefix(
+        self, group_name: str, *keys: str
+    ) -> AsyncIterator[Tuple[Tuple[str, ...], AnyStorable]]:
+        """ Concrete implementations must asynchronously yield a 2-tuple of (key tuple, value) """
         ...

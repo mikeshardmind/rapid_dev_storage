@@ -171,6 +171,7 @@ class SQLiteBackend(StorageBackend):
         *,
         serializer=None,
         deserializer=None,
+        existing_connection=None,
     ):
 
         if not (name.isidentifier() and not keyword.iskeyword(name)):
@@ -181,7 +182,7 @@ class SQLiteBackend(StorageBackend):
 
         table_name = f"_{name}-{unique_identifier}"
 
-        con = apsw.Connection(str(path))
+        con = existing_connection or apsw.Connection(str(path))
 
         cursor = con.cursor()
 

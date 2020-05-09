@@ -22,16 +22,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from typing import Awaitable, Union
+from typing import AsyncIterator, Awaitable, Tuple, Union
 
 from ._types import AnyStorable, StorageBackend, _NoValueType
 
 
 class StoredValue:
+    """
+    Representation of everything needed to interact with a stored value, methods included
+    """
+
     def __init__(self, backend: StorageBackend, group_name: str, *keys: str):
-        self._backend = backend
-        self._keys = keys
-        self._group_name = group_name
+        self._backend: StorageBackend = backend
+        self._keys: Tuple[str, ...] = keys
+        self._group_name: str = group_name
 
     def set_value(self, value: AnyStorable) -> Awaitable[None]:
         """
@@ -41,18 +45,12 @@ class StoredValue:
 
     def get_value(self) -> Awaitable[Union[AnyStorable, _NoValueType]]:
         """
-        Gets a value
-
-        May also return ``rapid_dev_storage.NoValue``
-        if there is not a value.
-        The abscence of a value is distinct from storing ``None``
-        Instances of subclasses of Storage may optionally fill in defaults
-        by replacing this class and it's use.
+        Gets a value if it exists, otherwise returns ``NoValue``
         """
         return self._backend.get_data(self._group_name, *self._keys)
 
     def clear_value(self) -> Awaitable[None]:
-        """ Clears a Value """
+        """ Clears a value. This does not require that the value already existed """
         return self._backend.clear_by_keys(self._group_name, *self._keys)
 
 
@@ -61,21 +59,25 @@ class StorageGroup:
         self._backend = backend
         self._group_name = group_name
 
-    def __getitem__(self, keys):
-        """
-        The key value restriction is an implementation detail of the included
-        SQLiteBackend class.
-        I suggest retaining it, but this can also be replaced.
-        """
-        if len(keys) > 5:
-            raise ValueError("Must not provide more than a 5-part key")
+    def __getitem__(self, keys) -> StoredValue:
+
+        # The key value restriction is an implementation detail of the included
+        # SQLiteBackend class.
+        # I suggest retaining it, but this can also be replaced.
+
+        k_l = len(keys)
+        if not 0 < k_l < 5:
+            raise ValueError(f"Must provide between 1 and 5 keys, got {k_l}")
+        if None in keys:
+            raise TypeError(f"Keys must not be None")
+
         return StoredValue(self._backend, self._group_name, *keys)
 
     def clear_group(self) -> Awaitable[None]:
         """ Clears an entire group """
         return self._backend.clear_group(self._group_name)
 
-    async def all_items(self):
+    async def all_items(self) -> AsyncIterator[Tuple[Tuple[str, ...], AnyStorable]]:
         """
         Iterates over all items stored in the group
 
@@ -96,8 +98,7 @@ class Storage:
     """
 
     def __init__(self, backend: StorageBackend):
-        self._state = None
-        self._backend = backend
+        self._backend: StorageBackend = backend
 
-    def get_group(self, name: str):
+    def get_group(self, name: str) -> StorageGroup:
         return StorageGroup(self._backend, name)
